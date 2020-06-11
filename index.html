@@ -20,22 +20,91 @@
   <link rel="stylesheet" href="css/main.css">
 
   <meta name="theme-color" content="#fafafa">
+
+  <style>
+    .circle {
+      height: 25px;
+      width: 25px;
+      background-color: red;
+      border-radius: 50%;
+      display: inline-block;
+      position: absolute;
+    }
+    .circle_small {
+      height: 25px;
+      width: 25px;
+      background-color: darkorange;
+      border-radius: 50%;
+      display: inline-block;
+      position: absolute;
+    }
+  </style>
 </head>
 
 <body>
 
   <!-- Add your site or application content here -->
-  <p>Hello world! This is HTML5 Boilerplate.</p>
   <script src="js/vendor/modernizr-3.11.2.min.js"></script>
   <script src="js/plugins.js"></script>
   <script src="js/main.js"></script>
 
-  <!-- Google Analytics: change UA-XXXXX-Y to be your site's ID. -->
+  <div class="circle" id="circle1"></div>
+  <div class="circle_small" id="circle2"></div>
+
   <script>
-    window.ga = function () { ga.q.push(arguments) }; ga.q = []; ga.l = +new Date;
-    ga('create', 'UA-XXXXX-Y', 'auto'); ga('set', 'anonymizeIp', true); ga('set', 'transport', 'beacon'); ga('send', 'pageview')
+    let SCREEN_WIDTH = document.documentElement.clientWidth;
+    let SCREEN_HEIGHT = document.documentElement.clientHeight;
+    let center_x = SCREEN_WIDTH / 2;
+    let center_y = SCREEN_HEIGHT / 2;
+    let circle = document.getElementById('circle1');
+    let circle_moving = document.getElementById('circle2');
+    const CIRCLES_DISTANCE = 250;
+
+    function setPosition(c, new_x, new_y) {
+      const rad = c.clientWidth / 2;
+      c.style.left = new_x - rad + 'px';
+      c.style.top = new_y - rad + 'px';
+    }
+
+    function circlePoint(cx, cy, r, angle) {
+        return [
+          cx + r * Math.cos(angle),
+          cy + r * Math.sin(angle)
+        ];
+    }
+
+    function pregenCirclePoints(cx, cy, r) {
+      let points_arr = [];
+      for (let theta = 0; theta < 2 * Math.PI; theta += 0.01) {
+        points_arr.push(
+          circlePoint(cx, cy, r, theta)
+        );
+      }
+      return points_arr;
+    }
+
+    const points = pregenCirclePoints(center_x, center_y, CIRCLES_DISTANCE);
+
+    let pt = 0;
+    function timerMoveCircle() {
+      if (pt === points.length) {
+        pt = 0;
+      } else {
+        pt++;
+      }
+      let curr_point = points[pt];
+      setPosition(circle_moving, curr_point[0], curr_point[1]);
+    }
+
+
+    setPosition(circle, center_x, center_y);
+    setInterval(timerMoveCircle, 2);
+
+
+
+
   </script>
-  <script src="https://www.google-analytics.com/analytics.js" async></script>
+
 </body>
 
 </html>
