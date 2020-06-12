@@ -25,23 +25,15 @@
     .circle {
       height: 25px;
       width: 25px;
-      background-color: red;
+      background-color: green;
       border-radius: 50%;
       display: inline-block;
       position: absolute;
     }
     .circle_small {
-      height: 10px;
-      width: 10px;
+      height: 12px;
+      width: 12px;
       background-color: darkorange;
-      border-radius: 50%;
-      display: inline-block;
-      position: absolute;
-    }
-    .circle_small2 {
-      height: 20px;
-      width: 20px;
-      background-color: blue;
       border-radius: 50%;
       display: inline-block;
       position: absolute;
@@ -58,11 +50,13 @@
 
   <div class="circle" id="circle1"></div>
   <div class="circle_small" id="circle2"></div>
-  <div class="circle_small" id="circle3"></div>
-  <div class="circle_small" id="circle4"></div>
+
 
   <script>
-    const CIRCLES_DISTANCE = 50;
+    const NUM_OF_CIRCLES = 100;
+    const STARTING_SPEED_COEFF = 500;
+    const RANDOM_SPEED_ON_CLICK_COEFF = 20;
+    const DELTA_TIME_FORWARD_COEFF = 0.0001;
 
     let SCREEN_WIDTH = document.documentElement.clientWidth;
     let SCREEN_HEIGHT = document.documentElement.clientHeight;
@@ -71,24 +65,33 @@
     let circle = document.getElementById('circle1');
     let circle_moving = document.getElementById('circle2');
 
+    let is_animation_stopped = false;
+
+    circle.onclick = () => {
+      is_animation_stopped = is_animation_stopped === false;
+      if (is_animation_stopped === true)
+        circle.style.backgroundColor = 'red';
+      else
+        circle.style.backgroundColor = 'green';
+    }
+
+
 
     let circles = [];
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < NUM_OF_CIRCLES; i++) {
       let cloned = circle_moving.cloneNode(false);
+      cloned._speed = (i + 1) / STARTING_SPEED_COEFF;
+      cloned.style.backgroundColor = randomColor();
+      cloned.onclick = () => {
+        cloned._speed = Math.random() / RANDOM_SPEED_ON_CLICK_COEFF;
+        cloned.style.backgroundColor = randomColor();
+      }
       circle_moving.parentNode.appendChild(cloned)
       circles.push(cloned);
     }
 
-    const array_of_points = [];
-    for (let i = 0; i < circles.length; i++) {
-      let pts = pregenCirclePoints(center_x, center_y, CIRCLES_DISTANCE + i * 10);
-      array_of_points.push(pts);
-    }
-
-
-    function random() {
-      let r = Math.random() * 2;
-      return Math.floor(r) !== 0;
+    function randomColor() {
+      return "#"+((1<<24)*Math.random()|0).toString(16);
     }
 
     function setPosition(c, new_x, new_y) {
@@ -104,37 +107,33 @@
         ];
     }
 
-    function pregenCirclePoints(cx, cy, r) {
-      let points_arr = [];
-      for (let theta = 0; theta < 2 * Math.PI; theta += 0.1) {
-        points_arr.push(
-          circlePoint(cx, cy, r, theta)
-        );
-      }
-      return points_arr;
-    }
 
-
-    function createMoveProcedure(circle, points_arr) {
-      let pt = 0;
-      return () => {
-        if (pt === points_arr.length) {
-          pt = 0;
-        } else {
-          pt++;
+    function createMoveProcedure(circle, rad) {
+      let theta = 0;
+      let start_time = null;
+      function moveProcedure(timestamp) {
+        if (start_time === null) {
+          start_time = timestamp;
+          window.requestAnimationFrame(moveProcedure);
         }
-        let curr_point = points_arr[pt];
-        setPosition(circle, curr_point[0], curr_point[1]);
+        let delta_time = timestamp - start_time;
+        if (is_animation_stopped === false)
+          theta += delta_time * DELTA_TIME_FORWARD_COEFF + circle._speed;
+        let new_point = circlePoint(center_x, center_y, rad, theta);
+        setPosition(circle, new_point[0], new_point[1]);
+        start_time = timestamp;
+        window.requestAnimationFrame(moveProcedure);
       }
+      return moveProcedure;
     }
 
     for (let i = 0; i < circles.length; i++) {
-      let pts = array_of_points[i];
       let circle = circles[i];
-      setInterval(createMoveProcedure(circle, pts), (i + 1) * 2.5);
+      window.requestAnimationFrame(createMoveProcedure(circle, ((i + 1) * 2) + 25));
     }
 
     setPosition(circle, center_x, center_y);
+    circle_moving.style.display = 'none';
 
 
   </script>
