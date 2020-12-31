@@ -34,7 +34,7 @@
       height: 12px;
       width: 12px;
       background-color: darkorange;
-      border-radius: 50%;
+      border-radius: 0%;
       display: inline-block;
       position: absolute;
     }
@@ -100,13 +100,20 @@
       c.style.top = new_y - rad + 'px';
     }
 
+    function setRadius(c, percents) {
+      c.style.borderRadius = percents + '%';
+    }
+
+    function timestampToRadius(ts) {
+      return 25 * Math.sin(ts) + 25;
+    }
+
     function circlePoint(cx, cy, r, angle) {
         return [
           cx + r * Math.cos(angle),
           cy + r * Math.sin(angle)
         ];
     }
-
 
     function createMoveProcedure(circle, rad) {
       let theta = 0;
@@ -120,7 +127,9 @@
         if (is_animation_stopped === false)
           theta += delta_time * DELTA_TIME_FORWARD_COEFF + circle._speed;
         let new_point = circlePoint(center_x, center_y, rad, theta);
+        circle.style.backgroundColor = randomColor();
         setPosition(circle, new_point[0], new_point[1]);
+        setRadius(circle, timestampToRadius(timestamp / 1000));
         start_time = timestamp;
         window.requestAnimationFrame(moveProcedure);
       }
